@@ -20,15 +20,8 @@
       <div class="col-md-4">
         <div class="glass-card p-3 h-100">
           <div class="tiny-uppercase text-muted mb-1">Radno vreme</div>
-          <div class="h5 mb-1">{{ currentProfile?.workMinutesToday ?? 0 }} virtualnih min</div>
-          <div class="small text-muted">8h = 480 minuta, posle toga vozač postaje neaktivan.</div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="glass-card p-3 h-100">
-          <div class="tiny-uppercase text-muted mb-1">Procena vožnje</div>
-          <div class="h5 mb-1">{{ currentEstimate.estimatedFare | number:'1.1-1' }} €</div>
-          <div class="small text-muted">{{ currentEstimate.routeLabel }}</div>
+          <div class="h5 mb-1">{{ currentProfile?.workMinutesToday ?? 0 }}min</div>
+          <div class="small text-muted">8h max</div>
         </div>
       </div>
     } @else if (normalizedRole === 'registered') {
