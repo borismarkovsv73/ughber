@@ -1,0 +1,121 @@
+<section class="hero-grid row g-4 align-items-stretch">
+  <div class="col-12 col-xl-5">
+    <div class="glass-card p-4 p-lg-5 h-100">
+      <p class="section-label mb-2">Poruči UBER</p>
+      <h2 class="display-6 fw-bold mb-3">Isplaniraj svoju vožnju sada</h2>
+      <p class="lead text-muted mb-4">
+        Izaberi početak i kraj vožnje, a sistem će ti prikazati procenu rute, vremena i cene. U demonstraciji, vožnja traje 1 minut za svaki realni sat.
+    </p>
+
+      <div class="row g-3 mb-4">
+        <div class="col-6">
+          <div class="mini-stat glass-card p-3 h-100">
+            <div class="tiny-uppercase text-muted">Tarifa</div>
+            <div class="h4 mb-0">1 EUR Start</div>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="mini-stat glass-card p-3 h-100">
+            <div class="tiny-uppercase text-muted">Vreme</div>
+            <div class="h4 mb-0">1h = 1min</div>
+            <div class="h4 mb-0">1min = 1sec</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card p-3 p-lg-4 mb-4">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <div>
+            <div class="tiny-uppercase text-muted">Procena vožnje</div>
+            <h3 class="h5 mb-0">Polazište, destinacija i ruta</h3>
+          </div>
+          <span class="badge-role badge-guest">Gost</span>
+        </div>
+
+        @if (!showEstimateForm) {
+          <button class="btn btn-brand w-100" type="button" (click)="openEstimateForm()">Proceni vožnju</button>
+        } @else {
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Polazište</label>
+              <input class="form-control" name="originText" [(ngModel)]="originText" placeholder="Unesi adresu polazišta" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Destinacija</label>
+              <input class="form-control" name="destinationText" [(ngModel)]="destinationText" placeholder="Unesi adresu destinacije" />
+            </div>
+            <div class="col-12">
+              <label class="form-label">Usputne stanice (opciono)</label>
+              <input class="form-control" name="stopText" [(ngModel)]="stopText" placeholder="Dorćol, Centar" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Budžet za transport</label>
+              <input class="form-control" type="number" name="budget" [(ngModel)]="budget" />
+            </div>
+            <div class="col-md-6 d-flex align-items-end gap-2">
+              <button class="btn btn-brand flex-fill" type="button" (click)="calculate()">Prikaži rutu i vreme</button>
+              <button class="btn btn-outline-light" type="button" (click)="cancelEstimate()">Zatvori</button>
+            </div>
+          </div>
+
+          @if (errorMessage) {
+            <div class="alert alert-warning mt-3 mb-0">{{ errorMessage }}</div>
+          }
+
+          @if (hasEstimate) {
+            <div class="row g-3 mt-3">
+              <div class="col-md-4">
+                <div class="metric-box p-3 h-100">
+                  <div class="tiny-uppercase text-muted">Udaljenost</div>
+                  <div class="h4 mb-0">{{ estimate.distanceKm }} km</div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="metric-box p-3 h-100">
+                  <div class="tiny-uppercase text-muted">Vreme vožnje</div>
+                  <div class="h4 mb-0">{{ estimate.estimatedVirtualMinutes }} min</div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="metric-box p-3 h-100">
+                  <div class="tiny-uppercase text-muted">Potrebno novca</div>
+                  <div class="h4 mb-0">{{ estimate.estimatedFare | number:'1.1-1' }} €</div>
+                  <div class="small" [class.text-danger]="budget < estimate.estimatedFare" [class.text-success]="budget >= estimate.estimatedFare">
+                    {{ budget >= estimate.estimatedFare ? 'Budžet pokriva vožnju' : 'Potrebno je više novca' }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        }
+      </div>
+
+      <div class="glass-card p-3 p-lg-4 mb-4">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <div>
+            <h3 class="h5 mb-0">Trenutno aktivna vozila</h3>
+          </div>
+          <span class="badge-role badge-driver">{{ activeVehicles().length }} aktivno</span>
+        </div>
+
+        <div class="vehicle-list">
+          @for (vehicle of activeVehicles(); track vehicle.id) {
+            <div class="vehicle-item">
+              <div>
+                <div class="vehicle-name">{{ vehicle.vehicleLabel }}</div>
+                <div class="small text-muted">Vozač: {{ vehicle.driverName }}</div>
+              </div>
+              <span class="badge-role" [class.badge-driver]="vehicle.availability === 'free'" [class.badge-admin]="vehicle.availability === 'busy'">
+                {{ vehicle.availability === 'busy' ? 'Zauzeto' : 'Slobodno' }}
+              </span>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-xl-7">
+    <app-leaflet-map [title]="mapTitle" [points]="mapPoints" [vehicles]="activeVehicles()"></app-leaflet-map>
+  </div>
+</section>

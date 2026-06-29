@@ -1,0 +1,78 @@
+<section class="row justify-content-center">
+  <div class="col-12 col-xl-8">
+    <div class="glass-card p-4 p-lg-5">
+      <p class="section-label mb-2">2.2.3 Registracija vozača</p>
+      <h2 class="h3 mb-4">Admin kreira vozača i vozilo</h2>
+
+      @if (!isAdmin()) {
+        <div class="alert alert-warning mb-0">Ova sekcija je dostupna samo administratoru.</div>
+      } @else {
+        <form class="row g-3" (ngSubmit)="submit()">
+          <div class="col-md-6">
+            <label class="form-label">Ime</label>
+            <input class="form-control" name="firstName" [(ngModel)]="firstName" required />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Prezime</label>
+            <input class="form-control" name="lastName" [(ngModel)]="lastName" required />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Email</label>
+            <input class="form-control" type="email" name="email" [(ngModel)]="email" required />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Telefon</label>
+            <input class="form-control" name="phone" [(ngModel)]="phone" required />
+          </div>
+          <div class="col-12">
+            <label class="form-label">Adresa</label>
+            <input class="form-control" name="address" [(ngModel)]="address" required />
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Model vozila</label>
+            <input class="form-control" name="vehicleModel" [(ngModel)]="vehicleModel" required />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Tip vozila</label>
+            <select class="form-select" name="vehicleType" [(ngModel)]="vehicleType">
+              <option value="standard">Standardno</option>
+              <option value="luxury">Luksuzno</option>
+              <option value="van">Kombi</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Registarske tablice</label>
+            <input class="form-control" name="plate" [(ngModel)]="plate" required />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Broj mesta</label>
+            <input class="form-control" type="number" min="1" name="seats" [(ngModel)]="seats" required />
+          </div>
+          <div class="col-md-6 form-check mt-2 ms-2">
+            <input id="baby" class="form-check-input" type="checkbox" name="babyTransport" [(ngModel)]="babyTransport" />
+            <label class="form-check-label" for="baby">Prevoz beba</label>
+          </div>
+          <div class="col-md-6 form-check mt-2 ms-2">
+            <input id="pets" class="form-check-input" type="checkbox" name="petTransport" [(ngModel)]="petTransport" />
+            <label class="form-check-label" for="pets">Prevoz kućnih ljubimaca</label>
+          </div>
+          <div class="col-12 d-grid">
+            <button class="btn btn-brand" type="submit">Kreiraj vozača</button>
+          </div>
+        </form>
+      }
+
+      @if (message) {
+        <div class="alert alert-info mt-3 mb-0">{{ message }}</div>
+      }
+
+      @if (activationUrl) {
+        <div class="mt-3">
+          <div class="small text-muted">Aktivacioni link za vozača (24h):</div>
+          <a class="link-light" [href]="activationUrl">{{ activationUrl }}</a>
+        </div>
+      }
+    </div>
+  </div>
+</section>

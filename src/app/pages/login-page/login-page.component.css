@@ -1,0 +1,8 @@
+.hint {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+a.link-light {
+  text-decoration: underline;
+}

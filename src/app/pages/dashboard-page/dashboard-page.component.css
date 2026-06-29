@@ -1,0 +1,56 @@
+.dashboard-hero,
+.panel-box,
+.queue-item,
+.admin-row,
+.report-box,
+.status-pill {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+}
+
+.queue-item,
+.admin-row {
+  background: rgba(3, 7, 18, 0.28);
+}
+
+.report-box {
+  min-height: 4.25rem;
+}
+
+.status-pill {
+  color: #dbeafe;
+}
+
+.stacked-panels {
+  align-content: start;
+}
+
+.list-group-item {
+  border-color: rgba(148, 163, 184, 0.2) !important;
+}
+
+.history-table-wrap {
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.history-table {
+  margin: 0;
+}
+
+.history-table th,
+.history-table td {
+  background: rgba(3, 7, 18, 0.2);
+  border-color: rgba(148, 163, 184, 0.2);
+}
+
+.history-sort {
+  color: #cbd5e1;
+  text-decoration: none;
+}
+
+.history-sort:hover {
+  color: #fde68a;
+}

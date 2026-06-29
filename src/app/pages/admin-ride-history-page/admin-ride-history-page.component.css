@@ -1,0 +1,53 @@
+.admin-history-hero,
+.history-table-wrap,
+.panel-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 18px;
+}
+
+.history-table-wrap {
+  overflow: hidden;
+}
+
+.history-table {
+  margin: 0;
+}
+
+.history-table th,
+.history-table td {
+  background: rgba(3, 7, 18, 0.2);
+  border-color: rgba(148, 163, 184, 0.18);
+  white-space: nowrap;
+}
+
+.history-row {
+  cursor: pointer;
+}
+
+.history-row:hover td {
+  background: rgba(15, 23, 42, 0.55);
+}
+
+.history-sort {
+  color: #cbd5e1;
+  text-decoration: none;
+}
+
+.history-sort:hover {
+  color: #fde68a;
+}
+
+.back-button {
+  font-family: inherit;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.ride-details-panel {
+  scroll-margin-top: 1rem;
+}
+
+.admin-history-badges .badge-role {
+  background: rgba(30, 41, 59, 0.95);
+}

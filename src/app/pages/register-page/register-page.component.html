@@ -1,0 +1,66 @@
+<section class="row justify-content-center">
+  <div class="col-12 col-xl-8">
+    <div class="glass-card p-4 p-lg-5">
+      <p class="section-label mb-2">Registracija korisnika</p>
+      <h2 class="h3 mb-4">Unesite svoje lične podatke</h2>
+
+      <form class="row g-3" novalidate (ngSubmit)="submit()">
+        <div class="col-md-6">
+          <label class="form-label">Ime</label>
+          <input class="form-control" name="firstName" [(ngModel)]="firstName" required />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Prezime</label>
+          <input class="form-control" name="lastName" [(ngModel)]="lastName" required />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Email</label>
+          <input class="form-control" type="email" name="email" [(ngModel)]="email" required />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Telefon</label>
+          <input class="form-control" name="phone" [(ngModel)]="phone" required />
+        </div>
+        <div class="col-12">
+          <label class="form-label">Adresa stanovanja</label>
+          <input class="form-control" name="address" [(ngModel)]="address" required />
+        </div>
+        <div class="col-12">
+          <label class="form-label">Link slike (opciono)</label>
+          <input class="form-control" name="avatarUrl" [(ngModel)]="avatarUrl" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Lozinka</label>
+          <input class="form-control" type="password" name="password" [(ngModel)]="password" required />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Potvrda lozinke</label>
+          <input class="form-control" type="password" name="confirmPassword" [(ngModel)]="confirmPassword" required />
+        </div>
+        <div class="col-12 d-grid">
+          <button class="btn btn-brand" type="submit">Registruj nalog</button>
+        </div>
+      </form>
+
+      @if (message) {
+        <div class="alert mt-3 mb-0"
+             [ngClass]="{
+               'alert-success': messageVariant === 'success',
+               'alert-warning': messageVariant === 'warning',
+               'alert-danger': messageVariant === 'danger',
+               'alert-info': messageVariant === 'info'
+             }">
+          {{ message }}
+        </div>
+      }
+
+      @if (activationUrl) {
+        <div class="mt-3">
+          <div class="small text-muted">Aktivacioni link (validan 24h):</div>
+          <a class="link-light" [href]="activationUrl">{{ activationUrl }}</a>
+        </div>
+      }
+      
+    </div>
+  </div>
+</section>

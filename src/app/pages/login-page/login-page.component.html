@@ -1,0 +1,39 @@
+<section class="row justify-content-center">
+  <div class="col-12 col-lg-6">
+    <div class="glass-card p-4 p-lg-5">
+      <p class="section-label mb-2">Login</p>
+      <h2 class="h3 mb-3">Prijava na sistem</h2>
+      <p class="text-muted mb-4">Unesite email adresu i lozinku za prijavu:</p>
+
+      <form class="row g-3" (ngSubmit)="submit()">
+        <div class="col-12">
+          <label class="form-label">Email adresa</label>
+          <input class="form-control" type="email" name="email" [(ngModel)]="email" required />
+        </div>
+        <div class="col-12">
+          <label class="form-label">Lozinka</label>
+          <input class="form-control" type="password" name="password" [(ngModel)]="password" required />
+        </div>
+        <div class="col-12 d-grid">
+          <button class="btn btn-brand" type="submit">Prijavi se</button>
+        </div>
+      </form>
+
+      @if (message) {
+        <div class="alert alert-warning mt-3 mb-0">{{ message }}</div>
+      }
+
+      <div class="mt-4 d-flex flex-wrap gap-3">
+        <a routerLink="/forgot-password" class="link-light">Zaboravljena lozinka?</a>
+        <a routerLink="/register" class="link-light">Nemaš nalog? Registruj se</a>
+      </div>
+
+      <div class="hint mt-4">
+        <div><strong>Demo kredencijali:</strong></div>
+        <div>Korisnik: mina@example.com / user123</div>
+        <div>Vozač: marko.driver@example.com / driver123</div>
+        <div>Admin: jelena.admin@example.com / admin123</div>
+      </div>
+    </div>
+  </div>
+</section>

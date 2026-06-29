@@ -1,0 +1,29 @@
+<section class="row justify-content-center">
+  <div class="col-12 col-lg-6">
+    <div class="glass-card p-4 p-lg-5">
+      <p class="section-label mb-2">Aktivacija naloga</p>
+      <h2 class="h3 mb-3">{{ mode === 'driver' ? 'Aktivacija vozačkog naloga' : 'Aktivacija korisničkog naloga' }}</h2>
+
+      <form class="row g-3" (ngSubmit)="submit()">
+        @if (mode === 'driver') {
+          <div class="col-12">
+            <label class="form-label">Lozinka</label>
+            <input class="form-control" type="password" name="password" [(ngModel)]="password" required />
+          </div>
+          <div class="col-12">
+            <label class="form-label">Potvrda lozinke</label>
+            <input class="form-control" type="password" name="confirmPassword" [(ngModel)]="confirmPassword" required />
+          </div>
+        }
+        <div class="col-12 d-grid">
+          <button class="btn btn-brand" type="submit">Aktiviraj nalog</button>
+        </div>
+      </form>
+
+      @if (message) {
+        <div class="alert mt-3 mb-0" [class.alert-success]="success" [class.alert-warning]="!success">{{ message }}</div>
+      }
+      
+    </div>
+  </div>
+</section>

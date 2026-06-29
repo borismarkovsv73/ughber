@@ -1,0 +1,174 @@
+<section class="admin-history-hero glass-card p-4 p-lg-5 mb-4">
+  <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
+    <div>
+      <p class="section-label mb-2">Istorija vožnji</p>
+      <h2 class="display-6 fw-bold mb-2">Administratorski pregled</h2>
+      <div class="text-muted">Filter po datumu nastanka, sortiranje po bilo kom polju i detalj sa mapom za svaku vožnju.</div>
+    </div>
+    <div class="d-grid gap-2 justify-items-end">
+      <button class="btn btn-brand-secondary back-button align-self-end" type="button" (click)="goBack()">Nazad</button>
+      <div class="admin-history-badges d-flex flex-wrap gap-2 justify-content-end">
+        <span class="badge-role badge-admin">{{ totalCount }} vožnji</span>
+        <span class="badge-role badge-admin">{{ cancelledCount }} otkazanih</span>
+        <span class="badge-role badge-admin">{{ panicCount }} PANIC prijava</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 align-items-end">
+    <div class="col-12 col-lg-3">
+      <label class="form-label">Tip istorije</label>
+      <div class="btn-group w-100" role="group">
+        <button class="btn btn-brand-secondary" type="button" [class.active]="historySubject === 'passenger'" (click)="setHistorySubject('passenger')">Putnik</button>
+        <button class="btn btn-brand-secondary" type="button" [class.active]="historySubject === 'driver'" (click)="setHistorySubject('driver')">Vozač</button>
+      </div>
+    </div>
+    <div class="col-12 col-lg-5">
+      <label class="form-label">Korisnik</label>
+      <select class="form-select" [(ngModel)]="historyUserId" (ngModelChange)="setHistoryUser($event)">
+        @for (user of historyUsers; track user.id) {
+          <option [ngValue]="user.id">{{ user.name }} • {{ user.email }}</option>
+        }
+      </select>
+    </div>
+    <div class="col-12 col-lg-2">
+      <label class="form-label">Datum nastanka</label>
+      <input class="form-control" type="date" [(ngModel)]="historyDate" />
+    </div>
+    <div class="col-12 col-lg-2 text-lg-end">
+      <button class="btn btn-brand-secondary w-100" type="button" (click)="setHistorySort('created')">Reset sortiranja</button>
+    </div>
+  </div>
+</section>
+
+@if (selectedRide; as ride) {
+  <section #detailsAnchor class="glass-card p-4 mb-4 ride-details-panel">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+      <div>
+        <div class="tiny-uppercase text-muted">Detaljni prikaz</div>
+        <h3 class="h4 mb-1">{{ historyRouteLabel(ride) }}</h3>
+        <div class="small text-muted">Kreirano: {{ ride.createdAt | date:'short' }} • Status: {{ rideStatusLabel(ride) }}</div>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <button class="btn btn-brand flex-fill" type="button" (click)="repeatRideNow(ride)">Poruči odmah</button>
+        <button class="btn btn-brand-secondary flex-fill" type="button" (click)="repeatRideLater(ride)">Zakazuj kasnije</button>
+      </div>
+    </div>
+
+    <app-leaflet-map [title]="historyRouteLabel(ride)" [points]="selectedRidePoints"></app-leaflet-map>
+
+    <div class="row g-3 mt-1">
+      <div class="col-md-6 col-xl-4">
+        <div class="panel-box p-3 h-100">
+          <div class="tiny-uppercase text-muted">Putnik</div>
+          <div class="fw-bold">{{ selectedPassenger?.name ?? ride.passengerName }}</div>
+          <div class="small text-muted">Email: {{ selectedPassenger?.email ?? 'Nema podatka' }}</div>
+          <div class="small text-muted">Telefon: {{ selectedPassenger?.phone ?? 'Nema podatka' }}</div>
+          <div class="small text-muted">Adresa: {{ selectedPassenger?.address ?? 'Nema podatka' }}</div>
+        </div>
+      </div>
+      <div class="col-md-6 col-xl-4">
+        <div class="panel-box p-3 h-100">
+          <div class="tiny-uppercase text-muted">Vozač</div>
+          <div class="fw-bold">{{ selectedDriver?.name ?? ride.driverName ?? 'Nedodeljen' }}</div>
+          <div class="small text-muted">Email: {{ selectedDriver?.email ?? 'Nema podatka' }}</div>
+          <div class="small text-muted">Telefon: {{ selectedDriver?.phone ?? 'Nema podatka' }}</div>
+          <div class="small text-muted">Adresa: {{ selectedDriver?.address ?? 'Nema podatka' }}</div>
+          <div class="small text-muted">Status naloga: {{ userStatusLabel(selectedDriver) }}</div>
+          <div class="small text-muted">Vozilo: {{ selectedDriver?.vehicle ?? 'Nema podatka' }}</div>
+        </div>
+      </div>
+      <div class="col-md-6 col-xl-4">
+        <div class="panel-box p-3 h-100">
+          <div class="tiny-uppercase text-muted">Otkazivanje i PANIC</div>
+          <div class="fw-bold">Otkazana: {{ ride.status === 'cancelled' ? 'Da' : 'Ne' }}</div>
+          <div class="small text-muted">Otkazao: {{ cancelledByLabel(ride) }}</div>
+          <div class="small text-muted">PANIC: {{ panicLabel(ride) }} @if (ride.panicReportedAt) { • {{ ride.panicReportedAt | date:'short' }} }</div>
+        </div>
+      </div>
+      <div class="col-md-6 col-xl-3">
+        <div class="panel-box p-3 h-100">
+          <div class="tiny-uppercase text-muted">Ocenjivanje i prijave</div>
+          <div class="fw-bold">Ocena: {{ ride.passengerRating ?? 'Nema ocene' }}</div>
+          <div class="small text-muted">Prijave: {{ ride.inconsistencyReports?.length ?? 0 }}</div>
+          <div class="small text-muted">Cena: {{ ride.estimatedFare | number:'1.1-1' }} €</div>
+          <div class="small text-muted">Početak: {{ historyStartDate(ride) | date:'short' }}</div>
+          <div class="small text-muted">Kraj: {{ ride.completedAt ? (historyEndDate(ride) | date:'short') : (ride.cancelledAt ? (historyEndDate(ride) | date:'short') : '-') }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-box p-3 mt-3">
+      <div class="tiny-uppercase text-muted mb-2">Prijave o nekonzistentnosti</div>
+      @if ((ride.inconsistencyReports?.length ?? 0) === 0) {
+        <div class="small text-muted">Nema prijava.</div>
+      } @else {
+        <div class="d-grid gap-2">
+          @for (issue of ride.inconsistencyReports ?? []; track issue) {
+            <div class="small">• {{ issue }}</div>
+          }
+        </div>
+      }
+    </div>
+  </section>
+} @else {
+  <section class="glass-card p-4 mb-4 d-flex align-items-center justify-content-center text-center">
+    <div>
+      <div class="tiny-uppercase text-muted mb-2">Detalji</div>
+      <div class="h5 mb-0">Nema vožnji za izabrani filter.</div>
+    </div>
+  </section>
+}
+
+<section class="glass-card p-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+      <div class="tiny-uppercase text-muted">Rezultat pretrage</div>
+      <h3 class="h4 mb-0">{{ sortedHistoryRides.length }} vožnji za prikaz</h3>
+    </div>
+    <div class="small text-muted">Klikni na red da promeniš detaljni prikaz iznad.</div>
+  </div>
+
+  <div class="table-responsive history-table-wrap">
+    <table class="table table-dark table-hover align-middle history-table mb-0">
+      <thead>
+        <tr>
+          <th scope="col"><button class="btn btn-link p-0 history-sort" type="button" (click)="setHistorySort('route')">Ruta {{ sortArrow('route') }}</button></th>
+          <th scope="col"><button class="btn btn-link p-0 history-sort" type="button" (click)="setHistorySort('passenger')">Putnik {{ sortArrow('passenger') }}</button></th>
+          <th scope="col"><button class="btn btn-link p-0 history-sort" type="button" (click)="setHistorySort('driver')">Vozač {{ sortArrow('driver') }}</button></th>
+          <th scope="col"><button class="btn btn-link p-0 history-sort" type="button" (click)="setHistorySort('created')">Kreirano {{ sortArrow('created') }}</button></th>
+          <th scope="col"><button class="btn btn-link p-0 history-sort" type="button" (click)="setHistorySort('start')">Početak {{ sortArrow('start') }}</button></th>
+          <th scope="col"><button class="btn btn-link p-0 history-sort" type="button" (click)="setHistorySort('end')">Kraj {{ sortArrow('end') }}</button></th>
+          <th scope="col"><button class="btn btn-link p-0 history-sort" type="button" (click)="setHistorySort('origin')">Polazište {{ sortArrow('origin') }}</button></th>
+          <th scope="col"><button class="btn btn-link p-0 history-sort" type="button" (click)="setHistorySort('destination')">Odredište {{ sortArrow('destination') }}</button></th>
+          <th scope="col"><button class="btn btn-link p-0 history-sort" type="button" (click)="setHistorySort('cancelled')">Otkazana {{ sortArrow('cancelled') }}</button></th>
+          <th scope="col"><button class="btn btn-link p-0 history-sort" type="button" (click)="setHistorySort('cancelledBy')">Otkazao {{ sortArrow('cancelledBy') }}</button></th>
+          <th scope="col"><button class="btn btn-link p-0 history-sort" type="button" (click)="setHistorySort('fare')">Cena {{ sortArrow('fare') }}</button></th>
+          <th scope="col"><button class="btn btn-link p-0 history-sort" type="button" (click)="setHistorySort('panic')">PANIC {{ sortArrow('panic') }}</button></th>
+          <th scope="col" class="text-end">Detalji</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (ride of sortedHistoryRides; track ride.id) {
+          <tr class="history-row" [class.table-active]="selectedRide?.id === ride.id" (click)="openRideDetails(ride.id)">
+            <td>{{ historyRouteLabel(ride) }}</td>
+            <td>{{ ride.passengerName }}</td>
+            <td>{{ ride.driverName ?? 'Nedodeljen' }}</td>
+            <td>{{ ride.createdAt | date:'short' }}</td>
+            <td>{{ historyStartDate(ride) | date:'short' }}</td>
+            <td>{{ ride.completedAt ? (historyEndDate(ride) | date:'short') : (ride.cancelledAt ? (historyEndDate(ride) | date:'short') : '-') }}</td>
+            <td>{{ state.getLocationLabel(ride.originId) }}</td>
+            <td>{{ state.getLocationLabel(ride.destinationId) }}</td>
+            <td>{{ ride.status === 'cancelled' ? 'Da' : 'Ne' }}</td>
+            <td>{{ cancelledByLabel(ride) }}</td>
+            <td>{{ ride.estimatedFare | number:'1.1-1' }} €</td>
+            <td>{{ panicLabel(ride) }}</td>
+            <td class="text-end">
+              <button class="btn btn-sm btn-brand-secondary" type="button" (click)="openRideDetails(ride.id)">Prikaži</button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>

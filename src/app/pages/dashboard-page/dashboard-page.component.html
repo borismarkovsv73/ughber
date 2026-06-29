@@ -1,0 +1,386 @@
+<section class="dashboard-hero glass-card p-4 p-lg-5 mb-4">
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+      <p class="section-label mb-2">{{ selectedRoleLabel }}</p>
+      <h2 class="display-6 fw-bold mb-2">Zdravo, {{ currentUser()?.name }}!</h2>
+    </div>
+    <span class="badge-role" [ngClass]="roleBadge">{{ normalizedRole }}</span>
+  </div>
+
+  <div class="row g-3">
+    @if (normalizedRole === 'driver') {
+      <div class="col-md-4">
+        <div class="glass-card p-3 h-100">
+          <div class="tiny-uppercase text-muted mb-1">Trenutni status</div>
+          <div class="h5 mb-1">{{ currentProfile?.active ? 'Aktivan' : 'Neaktivan' }}</div>
+          <div class="small text-muted">{{ currentProfile?.blocked ? 'Nalog je blokiran' : 'Nalog je dostupan za rad' }}</div>
+          <div class="small mt-2 text-warning">{{ liveRideCountdown() }}</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="glass-card p-3 h-100">
+          <div class="tiny-uppercase text-muted mb-1">Radno vreme</div>
+          <div class="h5 mb-1">{{ currentProfile?.workMinutesToday ?? 0 }} virtualnih min</div>
+          <div class="small text-muted">8h = 480 minuta, posle toga vozač postaje neaktivan.</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="glass-card p-3 h-100">
+          <div class="tiny-uppercase text-muted mb-1">Procena vožnje</div>
+          <div class="h5 mb-1">{{ currentEstimate.estimatedFare | number:'1.1-1' }} €</div>
+          <div class="small text-muted">{{ currentEstimate.routeLabel }}</div>
+        </div>
+      </div>
+    } @else if (normalizedRole === 'registered') {
+
+    } @else if (normalizedRole === 'admin') {
+
+    }
+  </div>
+</section>
+
+<div class="row g-4">
+  <div class="col-12 col-xl-8">
+    <div class="stacked-panels d-grid gap-4">
+      @switch (normalizedRole) {
+        @case ('registered') {
+          <section class="glass-card p-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+              <div>
+                <div class="tiny-uppercase text-muted">Registrovani korisnik</div>
+                <h3 class="h4 mb-0">Procena vožnje, rezervacije i PANIC</h3>
+              </div>
+              <div class="d-flex flex-column align-items-end gap-2">
+                <textarea class="form-control" rows="2" [(ngModel)]="panicReason" placeholder="Unesi razlog PANIC prijave"></textarea>
+                <button class="btn btn-danger-soft" type="button" (click)="sendPanic()" [disabled]="!(panicReason && panicReason.trim())">PANIC</button>
+              </div>
+            </div>
+
+            <div class="glass-card p-3 p-lg-4 mb-4">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Polazište</label>
+                  <input class="form-control" name="originText" [(ngModel)]="originText" placeholder="Unesi adresu polazišta" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Destinacija</label>
+                  <input class="form-control" name="destinationText" [(ngModel)]="destinationText" placeholder="Unesi adresu destinacije" />
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Usputne stanice (opciono)</label>
+                  <input class="form-control" name="stopText" [(ngModel)]="stopText" placeholder="Dorćol, Centar" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Budžet za transport</label>
+                  <input class="form-control" type="number" name="budget" [(ngModel)]="budget" />
+                </div>
+                <div class="col-md-6 d-flex align-items-end gap-2">
+                  <button class="btn btn-brand flex-fill" type="button" (click)="calculatePassengerEstimate()">Prikaži rutu i vreme</button>
+                  <button class="btn btn-outline-light" type="button" (click)="resetPassengerEstimate()">Reset</button>
+                </div>
+              </div>
+
+              @if (errorMessage) {
+                <div class="alert alert-warning mt-3 mb-0">{{ errorMessage }}</div>
+              }
+
+              @if (hasEstimate) {
+                <div class="row g-3 mt-3">
+                  <div class="col-md-4">
+                    <div class="panel-box p-3 h-100">
+                      <div class="tiny-uppercase text-muted">Procena</div>
+                      <div class="h4 mb-0">{{ estimate.estimatedVirtualMinutes }} min</div>
+                      <div class="small text-muted">~{{ estimate.estimatedVirtualMinutes }} sekundi u demo režimu</div>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="panel-box p-3 h-100">
+                      <div class="tiny-uppercase text-muted">Novac</div>
+                      <div class="h4 mb-0">{{ estimate.estimatedFare | number:'1.1-1' }} €</div>
+                      <div class="small" [class.text-danger]="budget < estimate.estimatedFare" [class.text-success]="budget >= estimate.estimatedFare">
+                        {{ budget >= estimate.estimatedFare ? 'Budžet pokriva vožnju' : 'Potrebno je više novca' }}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="panel-box p-3 h-100">
+                      <div class="tiny-uppercase text-muted">Ruta</div>
+                      <div class="h4 mb-0">{{ estimate.routeLabel }}</div>
+                    </div>
+                  </div>
+                </div>
+              }
+
+              <div class="d-flex flex-wrap gap-2 mt-3">
+                <button class="btn btn-brand" type="button" (click)="submitRegisteredRide()">Zatraži vožnju</button>
+                <button class="btn btn-brand-secondary" type="button" (click)="saveRoute()">Sačuvaj rutu</button>
+                <button class="btn btn-brand-secondary" type="button" (click)="updateProfile()">Sačuvaj profil</button>
+              </div>
+            </div>
+
+            <div class="row g-3 mt-3">
+              <div class="col-md-4">
+                <div class="panel-box p-3 h-100">
+                  <div class="tiny-uppercase text-muted">Procena</div>
+                  <div class="h4 mb-0">{{ currentEstimate.estimatedVirtualMinutes }} min</div>
+                  <div class="small text-muted">~{{ currentEstimate.estimatedVirtualMinutes }} sekundi u demo režimu</div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="panel-box p-3 h-100">
+                  <div class="tiny-uppercase text-muted">Novac</div>
+                  <div class="h4 mb-0">{{ estimate.estimatedFare | number:'1.1-1' }} €</div>
+                  <div class="small text-muted">Budžet: {{ budget }} €</div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="panel-box p-3 h-100">
+                  <div class="tiny-uppercase text-muted">Sačuvane rute</div>
+                  <div class="h4 mb-0">{{ passengerRoutes.length }}</div>
+                  <div class="small text-muted">Istorija po datumu je dostupna ispod.</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="glass-card p-4">
+            <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+              <div>
+                <div class="tiny-uppercase text-muted">Istorija vožnji</div>
+                <h3 class="h5 mb-0">Tabela sa sortiranjem i detaljima</h3>
+              </div>
+              <input class="form-control w-auto" type="date" [(ngModel)]="historyDate" />
+            </div>
+
+            <div class="table-responsive history-table-wrap">
+              <table class="table table-dark table-hover align-middle history-table mb-0">
+                <thead>
+                  <tr>
+                    <th scope="col"><button class="btn btn-link p-0 history-sort" type="button" (click)="setHistorySort('route')">Ruta {{ sortArrow('route') }}</button></th>
+                    <th scope="col"><button class="btn btn-link p-0 history-sort" type="button" (click)="setHistorySort('start')">Početak {{ sortArrow('start') }}</button></th>
+                    <th scope="col"><button class="btn btn-link p-0 history-sort" type="button" (click)="setHistorySort('end')">Kraj {{ sortArrow('end') }}</button></th>
+                    <th scope="col"><button class="btn btn-link p-0 history-sort" type="button" (click)="setHistorySort('driver')">Vozač {{ sortArrow('driver') }}</button></th>
+                    <th scope="col"><button class="btn btn-link p-0 history-sort" type="button" (click)="setHistorySort('inconsistency')">Prijave {{ sortArrow('inconsistency') }}</button></th>
+                    <th scope="col"><button class="btn btn-link p-0 history-sort" type="button" (click)="setHistorySort('rating')">Ocena {{ sortArrow('rating') }}</button></th>
+                    <th scope="col" class="text-end">Detalji</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (ride of sortedPassengerHistory; track ride.id) {
+                    <tr [class.table-active]="selectedHistoryRide?.id === ride.id">
+                      <td>{{ historyRouteLabel(ride) }}</td>
+                      <td>{{ historyStartDate(ride) | date:'short' }}</td>
+                      <td>{{ ride.completedAt ? (historyEndDate(ride) | date:'short') : '-' }}</td>
+                      <td>{{ ride.driverName ?? 'Nedodeljen' }}</td>
+                      <td>{{ ride.inconsistencyReports?.length ?? 0 }}</td>
+                      <td>{{ ride.passengerRating ?? '-' }}</td>
+                      <td class="text-end">
+                        <button class="btn btn-sm btn-brand-secondary" type="button" (click)="openRideDetails(ride.id)">Prikaži</button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            @if (selectedHistoryRide; as ride) {
+              <div class="glass-card p-3 mt-3">
+                <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+                  <div>
+                    <div class="tiny-uppercase text-muted">Detalji vožnje</div>
+                    <h4 class="h6 mb-1">{{ historyRouteLabel(ride) }}</h4>
+                    <div class="small text-muted">Početak: {{ historyStartDate(ride) | date:'short' }} • Kraj: {{ ride.completedAt ? (historyEndDate(ride) | date:'short') : 'u toku / nije završena' }}</div>
+                  </div>
+                  <div class="d-flex flex-wrap gap-2">
+                    <button class="btn btn-sm btn-brand" type="button" (click)="repeatRideNow(ride)">Poruči odmah</button>
+                    <button class="btn btn-sm btn-brand-secondary" type="button" (click)="repeatRideLater(ride)">Zakazuj kasnije</button>
+                  </div>
+                </div>
+
+                <div class="row g-3">
+                  <div class="col-md-4">
+                    <div class="panel-box p-3 h-100">
+                      <div class="tiny-uppercase text-muted">Vozač</div>
+                      <div class="fw-bold">{{ ride.driverName ?? 'Nedodeljen' }}</div>
+                      <div class="small text-muted">Status vožnje: {{ ride.status }}</div>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="panel-box p-3 h-100">
+                      <div class="tiny-uppercase text-muted">Prijave nekonzistentnosti</div>
+                      @if ((ride.inconsistencyReports?.length ?? 0) === 0) {
+                        <div class="small text-muted">Nema prijava.</div>
+                      } @else {
+                        @for (issue of ride.inconsistencyReports ?? []; track issue) {
+                          <div class="small">• {{ issue }}</div>
+                        }
+                      }
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="panel-box p-3 h-100">
+                      <div class="tiny-uppercase text-muted">Ocena vožnje</div>
+                      <div class="fw-bold">{{ ride.passengerRating ?? 'Nije ocenjena' }}</div>
+                      <div class="small text-muted">Procenjena cena: {{ ride.estimatedFare | number:'1.1-1' }} €</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          </section>
+        }
+        @case ('driver') {
+          <section class="glass-card p-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+              <div>
+                <div class="tiny-uppercase text-muted">Vozač</div>
+                <h3 class="h4 mb-0">Automatski dodeljene vožnje</h3>
+              </div>
+              <div class="d-flex gap-2 align-items-center">
+                <button class="btn btn-brand-secondary" type="button" (click)="toggleDriverStatus()">{{ currentProfile?.active ? 'Postavi inactive' : 'Postavi active' }}</button>
+                <div class="d-flex flex-column align-items-end gap-2">
+                  <textarea class="form-control" rows="2" [(ngModel)]="panicReason" placeholder="Unesi razlog PANIC prijave (vozač)"></textarea>
+                  <button class="btn btn-danger-soft" type="button" (click)="sendPanic()" [disabled]="!(panicReason && panicReason.trim())">PANIC</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-4">
+                <div class="panel-box p-3 h-100">
+                  <div class="tiny-uppercase text-muted">Sati danas</div>
+                  <div class="h4 mb-0">{{ currentProfile?.workMinutesToday ?? 0 }} min</div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="panel-box p-3 h-100">
+                  <div class="tiny-uppercase text-muted">Status</div>
+                  <div class="h4 mb-0">{{ currentProfile?.active ? 'Aktivan' : 'Neaktivan' }}</div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="panel-box p-3 h-100">
+                  <div class="tiny-uppercase text-muted">Istorija</div>
+                  <div class="h4 mb-0">{{ driverHistory.length }}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="queue-list d-grid gap-3">
+              @for (ride of driverQueue; track ride.id) {
+                <div class="queue-item p-3">
+                  <div class="d-flex justify-content-between gap-3 flex-wrap">
+                    <div>
+                      <div class="fw-bold">{{ ride.passengerName }}</div>
+                      <div class="small text-muted">{{ state.getLocationLabel(ride.originId) }} → {{ state.getLocationLabel(ride.destinationId) }}</div>
+                      <div class="small text-muted">{{ ride.estimatedVirtualMinutes }} virtualnih min • {{ ride.estimatedFare | number:'1.1-1' }} €</div>
+                    </div>
+                    <div class="text-end">
+                      <input class="form-control mb-2" [(ngModel)]="driverDecisionReasons[ride.id]" placeholder="Obrazloženje za odbijanje" />
+                      <div class="d-flex gap-2 justify-content-end">
+                        <button class="btn btn-brand" type="button" (click)="acceptRide(ride.id)">Prihvati</button>
+                        <button class="btn btn-brand-secondary" type="button" [disabled]="!(driverDecisionReasons[ride.id] || '').trim()" (click)="rejectRide(ride.id)">Odbij</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <div class="mt-4">
+              <button class="btn btn-brand-secondary" type="button" (click)="refreshPreview()">Generiši izveštaj</button>
+              <div class="report-box mt-3 p-3">{{ reportPreview }}</div>
+            </div>
+          </section>
+        }
+        @case ('admin') {
+          <section class="glass-card p-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+              <div>
+                <div class="tiny-uppercase text-muted">Admin kontrola</div>
+                <h3 class="h4 mb-0">Kreiranje vozača i blokade</h3>
+              </div>
+              <div class="d-flex flex-wrap gap-2">
+                <button class="btn btn-brand-secondary" type="button" (click)="openAdminRideHistory()">Istorija vožnji</button>
+                <button class="btn btn-brand-secondary" type="button" (click)="refreshPreview()">Osveži sistemski izveštaj</button>
+              </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-4">
+                <input class="form-control" [(ngModel)]="driverName" placeholder="Ime novog vozača" />
+              </div>
+              <div class="col-md-4">
+                <input class="form-control" [(ngModel)]="driverEmail" placeholder="Email adresa" />
+              </div>
+              <div class="col-md-4">
+                <input class="form-control" [(ngModel)]="driverVehicle" placeholder="Vozilo / tablice" />
+              </div>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2 mb-4">
+              <button class="btn btn-brand" type="button" (click)="createDriver()">Kreiraj nalog vozača</button>
+              <button class="btn btn-brand-secondary" type="button" (click)="sendChat()">Pošalji live support poruku</button>
+            </div>
+
+            <div class="row g-3">
+              <div class="col-lg-6">
+                <div class="panel-box p-3 h-100">
+                  <div class="tiny-uppercase text-muted mb-3">Blokiranje korisnika i vozača</div>
+                  <div class="d-grid gap-2">
+                    @for (user of adminUsers; track user.id) {
+                      <div class="admin-row d-flex justify-content-between align-items-center gap-3 p-2">
+                        <div>
+                          <div class="fw-bold">{{ user.name }}</div>
+                          <div class="small text-muted">{{ user.role }} • {{ user.email }}</div>
+                        </div>
+                        <button class="btn btn-sm btn-brand-secondary" type="button" (click)="toggleBlock(user.id)">
+                          {{ user.blocked ? 'Odblokiraj' : 'Blokiraj' }}
+                        </button>
+                      </div>
+                    }
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-lg-6">
+                <div class="panel-box p-3 h-100">
+                  <div class="tiny-uppercase text-muted mb-3">PANIC notifikacije</div>
+                  <div class="d-grid gap-2">
+                    @for (notification of panicNotifications; track notification.id) {
+                      <div class="admin-row p-2 d-flex justify-content-between align-items-start">
+                        <div>
+                          <div class="fw-bold">{{ notification.title }}</div>
+                          <div class="small text-muted">{{ notification.message }}</div>
+                          <div class="small text-muted">{{ notification.sourcePhone }}</div>
+                          <div class="small text-muted">{{ notification.timestamp | date:'short' }}</div>
+                        </div>
+                        <div>
+                          <button class="btn btn-sm btn-brand-secondary mt-2" type="button" (click)="markPanicRead(notification.id)">{{'Označi kao pročitano' }}</button>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-3">
+              <label class="form-label">Live chat podrška</label>
+              <textarea class="form-control" rows="3" [(ngModel)]="chatDraft"></textarea>
+            </div>
+
+            <div class="mt-3">
+              <button class="btn btn-brand-secondary" type="button" (click)="sendChat()">Pošalji poruku</button>
+              <div class="report-box mt-3 p-3">{{ reportPreview }}</div>
+            </div>
+          </section>
+        }
+      }
+    </div>
+  </div>
+
+  <div class="col-12 col-xl-4">
+    <app-leaflet-map [title]="currentRideTitle" [points]="currentRidePreview" [livePoint]="liveRidePoint()" [panicPoint]="panicRidePoint()"></app-leaflet-map>
+  </div>
+</div>
